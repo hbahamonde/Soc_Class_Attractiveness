@@ -276,3 +276,5 @@ TSWLatexianTemp*
 *.lpz
 
 .DS_Store
+
+ISODATA_clean2.dta
