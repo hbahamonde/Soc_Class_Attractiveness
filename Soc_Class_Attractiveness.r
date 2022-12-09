@@ -39,6 +39,10 @@ candidate.voter.d = merge(candidate.voter.d, dat, by = "id")
 candidate.voter.d$municipality = as.factor(candidate.voter.d$municipality)
 candidate.voter.d$id = as.factor(candidate.voter.d$id)
 
+# recoded ideology
+candidate.voter.d$ideology.recoded = candidate.voter.d$ideology
+levels(candidate.voter.d$ideology.recoded)[levels(candidate.voter.d$ideology.recoded)=="Center-Left"] = "Center"
+levels(candidate.voter.d$ideology.recoded)[levels(candidate.voter.d$ideology.recoded)=="Center-Right"] = "Center"
 
 # Partitioning the data
 candidate.voter.male.d = candidate.voter.d %>% filter(candidate_gender == "Male")
@@ -68,7 +72,7 @@ DAintfun2(m1.male, varnames = c("voter_isei", "candidate_isei"),rug = TRUE, hist
 DAintfun2(m1.female, varnames = c("voter_isei", "candidate_isei"),rug = TRUE, hist = TRUE)
 
 ##############################
-# OLS (stage 2)
+# OLS 2 (stage 2)
 m2 <- lm(turnout ~ candidate_attractiveness + voter_isei*candidate_isei + age + candidate_gender + city + party, data = candidate.voter.d) # 
 
 options(scipen=999)
@@ -98,3 +102,95 @@ age.p = plot(predictorEffect("age", m2), asp = 1, xlab = "Candidate Age", ylab =
 # combining plots
 p_load(gridExtra)
 grid.arrange(attractiveness.p, gender.p, age.p, ncol = 3)
+
+# Way out 1: candidates that are systematically evaluated higher on physical appearance receive more votes in the election.
+# THIS DOES NOT WORK: candidates that receive more votes are associated with voters that score higher in social class (BUT THIS LINK IS JUST RANDOM ASSOCIATION BETWEEN THE VOTER AND THE SAMPLE OF CANDIDATES THEY WERE ASSIGNED TO EVALUATE).
+
+
+##############################
+# OLS 3 (stage 2)
+
+# all ideology
+m3 <- lm(turnout ~ candidate_attractiveness*ideology + age + candidate_gender + city-1, data = candidate.voter.d) # 
+m3.male <- lm(turnout ~ candidate_attractiveness*ideology + age + city-1, data = candidate.voter.male.d) # 
+m3.female <- lm(turnout ~ candidate_attractiveness*ideology + age + city-1, data = candidate.voter.female.d) # 
+
+# recoded ideology
+m3.2 <- lm(turnout ~ candidate_attractiveness*ideology.recoded + age + candidate_gender + city-1, data = candidate.voter.d) # 
+m3.male.2 <- lm(turnout ~ candidate_attractiveness*ideology.recoded + age + city-1, data = candidate.voter.male.d) # 
+m3.female.2 <- lm(turnout ~ candidate_attractiveness*ideology.recoded + age + city-1, data = candidate.voter.female.d) # 
+
+
+# story
+## Voters usually use a myriad of resources to choose their candidates. While we already know that voters use a mix of class heuristics and physical appearance cues, unfortunately it's not clear which type of information predicts votes best.
+## While class cues contribute to successful electoral outcomes, we find that candidates that are ranked better according to their physical attractiveness perform best in elections.
+
+options(scipen=999)
+summary(m3)
+
+p_load(texreg)
+screenreg( # use "screenreg" or "texreg" // BUT DO KEEP IT IN texreg FOR THE PAPER
+  list(m3)#, # list all the saved models here
+  #omit.coef = "id"
+)
+
+# Plot
+# p_load(DAMisc)
+# DAintfun2(m3, varnames = c("candidate_attractiveness", "ideology"), 
+#          rug = TRUE, 
+#          hist = TRUE,
+#          #ylab = c("Cond. Eff. of Candidate Attractiveness", "Cond. Eff. of Voter  Soc. Class"),
+#          #xlab = c("Candidate Social Class", "Candidate Attractiveness"),
+#          nclass = c(20, 20)
+#          )
+
+
+## plots
+p_load(sjPlot,sjmisc,ggplot2)
+theme_set(theme_sjplot())
+
+# All ideology
+p1 = plot_model(m3, type = "int", title = "Complete Data (controlling for gender)", axis.title = c("Candidate Attractiveness", "Votes", show.legend = F))
+p2 = plot_model(m3.male, type = "int", title = "Male Data", axis.title = c("Candidate Attractiveness", "Votes", show.legend = F))
+p3 = plot_model(m3.female, type = "int", title = "Female Data", axis.title = c("Candidate Attractiveness", "Votes", show.legend = T))
+# combining plots
+p_load(gridExtra)
+grid.arrange(p1, p2, p3, ncol = 3)
+
+
+# All ideology
+p1.2 = plot_model(m3.2, type = "int", title = "Complete Data (controlling for gender)", axis.title = c("Candidate Attractiveness", "Votes", show.legend = F))
+p2.2 = plot_model(m3.male.2, type = "int", title = "Male Data", axis.title = c("Candidate Attractiveness", "Votes", show.legend = F))
+p3.2 = plot_model(m3.female.2, type = "int", title = "Female Data", axis.title = c("Candidate Attractiveness", "Votes", show.legend = T))
+# combining plots
+p_load(gridExtra)
+grid.arrange(p1.2, p2.2, p3.2, ncol = 3)
+
+
+
+
+
+
+
+
+# p_load(effects)
+# attractiveness.p3 = plot(predictorEffect("candidate_attractiveness", m3), asp = 1, xlab = "Candidate Attractiveness", ylab = "Predicted Votes", main = "")
+# candidate.isei.p3 = plot(predictorEffect("candidate_isei", m3), asp = 1, xlab = "Candidate Social Class", ylab = "", main = "")
+p1 = plot(predictorEffect("candidate_attractiveness", m3), asp = 1, xlab = "candidate_attractiveness", ylab = "", main = "")
+p2 = plot(predictorEffect("candidate_isei", m3), asp = 1, xlab = "candidate_isei", ylab = "", main = "")
+p3 = plot(predictorEffect("age", m3), asp = 1, xlab = "age", ylab = "", main = "")
+
+# combining plots
+p_load(gridExtra)
+grid.arrange(p1, p2, p3, ncol = 3)
+
+
+
+
+
+# todo
+## 1. try attractiveness*ideology (or party)
+## 2. split by gender.
+## read: Beholding Inequality: Race, Gender, and Returns to Physical Attractiveness in the United States.
+
+
