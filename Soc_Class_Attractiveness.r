@@ -50,6 +50,11 @@ candidate.voter.female.d = candidate.voter.d %>% filter(candidate_gender == "Fem
 
 
 # Descriptive
+dev.off()
+par(mfrow = c(1, 3))
+plot(density(log(candidate.voter.d$turnout)), main = "Dependent Variable", xlab = "Votes Received (log)", ylab = "Density")
+plot(candidate.voter.d$ideology.recoded, main = "Ideology of Party", xlab = "", ylab = "Frequency")
+plot(density(candidate.voter.d$attractiveness), main = "Attractiveness Levels", xlab = "", ylab = "Density")
 
 
 
@@ -150,7 +155,7 @@ p_load(sjPlot,sjmisc,ggplot2)
 theme_set(theme_sjplot())
 
 # All ideology
-p1 = plot_model(m3, type = "int", title = "Complete Data (controlling for gender)", axis.title = c("Candidate Attractiveness", "Votes", show.legend = F))
+#p1 = plot_model(m3, type = "int", title = "Complete Data (controlling for gender)", axis.title = c("Candidate Attractiveness", "Votes", show.legend = F))
 p2 = plot_model(m3.male, type = "int", title = "Male Data", axis.title = c("Candidate Attractiveness", "Votes", show.legend = F))
 p3 = plot_model(m3.female, type = "int", title = "Female Data", axis.title = c("Candidate Attractiveness", "Votes", show.legend = T))
 # combining plots
@@ -159,12 +164,14 @@ grid.arrange(p1, p2, p3, ncol = 3)
 
 
 # All ideology
-p1.2 = plot_model(m3.2, type = "int", title = "Complete Data (controlling for gender)", axis.title = c("Candidate Attractiveness", "Votes", show.legend = F))
-p2.2 = plot_model(m3.male.2, type = "int", title = "Male Data", axis.title = c("Candidate Attractiveness", "Votes", show.legend = F))
-p3.2 = plot_model(m3.female.2, type = "int", title = "Female Data", axis.title = c("Candidate Attractiveness", "Votes", show.legend = T))
+p_load(sjPlot,sjmisc,ggplot2)
+theme_set(theme_sjplot())
+#p1.2 = plot_model(m3.2, type = "int", title = "Complete Data (controlling for gender)", axis.title = c("Candidate Attractiveness", "Votes", show.legend = F))
+p2.2 = plot_model(m3.male.2, type = "int", title = "Male Data", axis.title = c("Candidate Attractiveness", "Votes", legend.title = "Political Party"))
+p3.2 = plot_model(m3.female.2, type = "int", title = "Female Data", axis.title = c("Candidate Attractiveness", "Votes", legend.title = "Political Party"))
 # combining plots
 p_load(gridExtra)
-grid.arrange(p1.2, p2.2, p3.2, ncol = 3)
+grid.arrange(p2.2, p3.2, ncol = 2)
 
 
 
@@ -192,5 +199,4 @@ grid.arrange(p1, p2, p3, ncol = 3)
 ## 1. try attractiveness*ideology (or party)
 ## 2. split by gender.
 ## read: Beholding Inequality: Race, Gender, and Returns to Physical Attractiveness in the United States.
-
 
